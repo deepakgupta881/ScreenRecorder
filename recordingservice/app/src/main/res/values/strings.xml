@@ -1,0 +1,134 @@
+<resources>
+    <string name="app_name">recordingservice</string>
+    <!-- Resolution-->
+    <string name="preference_resolution_title">Resolution</string>
+    <string name="preference_resolution_summary">Select the resolution to record at</string>
+
+    <!--Frames-->
+    <string name="preference_fps_title">Frames per second</string>
+    <string name="preference_fps_summary">Choose fps to record at</string>
+
+    <!--Bit Rate-->
+    <string name="preference_bit_title">Bit rate</string>
+    <string name="preference_bit_summary">Choose bit rate</string>
+
+    <!--Audio -->
+    <string name="preference_audio_record_title">Record audio</string>
+    <string name="preference_audio_record_summary">Records audio from mic along with screen video</string>
+
+    <!--Location-->
+    <string name="preference_save_location_title">Save location</string>
+
+    <!--Various Keys-->
+    <string name="res_key" translatable="false">resolution</string>
+    <string name="fps_key" translatable="false">fps</string>
+
+    <string name="bitrate_key" translatable="false">bitrate</string>
+    <string name="audiorec_key" translatable="false">audiorec</string>
+    <string name="savelocation_key" translatable="false">savelocation</string>
+    <string name="filename_key" translatable="false">filename</string>
+    <string name="preference_filename_format_title">File name format</string>
+    <string name="fileprefix_key" translatable="false">fileprefix</string>
+
+    <!-- File Name-->
+    <string name="preference_filename_prefix_title">File name prefix</string>
+
+    <!--Storage Permission-->
+    <string name="storage_permission_request_title">Allow Storage Permission</string>
+    <string name="storage_permission_request_summary">Write permission to storage is required to save the recorded video.</string>
+
+    <!-- Control -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <!--Notifications-->
+    <string name="screen_recording_permission_denied">Screen Recording Permission Denied</string>
+    <string name="screen_recording_notification_title">Screen recording</string>
+    <string name="screen_recording_notification_action_stop">Stop</string>
+    <string name="screen_recording_notification_action_pause">Pause</string>
+    <string name="screen_recording_notification_action_resume">Resume</string>
+
+    <!--Error-->
+    <string name="fatal_exception_message">ScreenRecorder: Fatal Exception occurred. Log has been sent</string>
+    <string name="about_activity_label">About</string>
+
+    <!--Snackbar-->
+    <string name="snackbar_storage_permission_message">Grant storage perm</string>
+    <string name="snackbar_storage_permission_action_enable">ENABLE</string>
+
+    <!--Menu title-->
+    <string name="menu_about_title">About</string>
+    <string name="about_credits">Credits</string>
+    <string name="github_link">Source Code</string>
+    <string name="about_libraries">Libraries</string>
+    <string name="about_opensource">Open Source</string>
+
+    <!--About Activity-->
+    <string name="app_icon_credit_Niko">App Icons by %1$s\n\nwebsite: %2$s</string>
+    <string name="video_editor_library_credit">Video Editor by %1$s\n\nGithub url: %2$s\n\nLicense: %3$s</string>
+    <string name="source_code">Github url: %1$s</string>
+    <string name="analytics_library_credit">Crash reporting and analytics SDK by %1$s\n\nGithub url: %2$s\n\nLicense: %3$s</string>
+    <string name="opensource_info">This app is opensourced and the source could be obained at \n\nGithub url: %1$s\n\nLicense: %2$s</string>
+
+
+    <string name="fab_record_hint">Start recording</string>
+    <string name="recording_failed_toast">Screen recording failed.</string>
+    <string name="screenrecording_already_active_toast">Screen recording session already active</string>
+    <string name="large_resolution_selected_toast">The selected resolution is larger than display resolution. Using %1$s resolution instead</string>
+    <string name="shortcut_short_label">Record</string>
+    <string name="shortcut_long_label">Quick Record</string>
+    <string name="shortcut_disabled_message">Recording disabled</string>
+    <string name="app_shortcut_action" translatable="false">com.orpheusdroid.screenrecorder.RECORD</string>
+
+
+    <!--Toast message-->
+    <string name="screen_recording_started_toast">Screen recording started</string>
+    <string name="screen_recording_stopped_toast">Screen Recording stopped</string>
+    <string name="screen_recording_resumed_toast">Screen Recording resumed</string>
+    <string name="screen_recording_paused_toast">Screen Recording paused</string>
+
+    <string name="fab_stop_hint">Stop recording</string>
+
+    <!-- Share options-->
+    <string name="share_intent_title">Share recorded</string>
+    <string name="share_intent_notification_title">Share recorded video</string>
+    <string name="share_intent_notification_content">click to share the recorded video</string>
+    <string name="share_intent_notification_action_text">Share</string>
+
+    <!--Floating controls-->
+    <string name="preference_floating_control_title">Use Floating Controls</string>
+    <string name="preference_floating_control_summary">Enable/Disable floating controls which draws over every screen</string>
+    <string name="preference_floating_control_key" translatable="false">floating_controls</string>
+
+    <!--Tab Settings-->
+    <string name="tab_settings_title">Settings</string>
+    <string name="tab_videos_title">Videos</string>
+
+    <!--Storage management-->
+    <string name="video_list_permission_denied_message">Storage permission denied</string>
+    <string name="video_list_no_video_message">No videos available</string>
+    <string name="alert_title_create_folder">Create Folder</string>
+    <string name="alert_message_create_folder">Enter folder name</string>
+
+    <!--Settings Category-->
+    <string name="prefs_category_video_settings_title">Video settings</string>
+    <string name="prefs_category_audio_settings_title">Audio settings</string>
+    <string name="prefs_category_save_options_title">Save options</string>
+    <string name="prefs_category_misc_title">Misc</string>
+
+
+    <string name="preference_show_touch_summary">Enable/disable touch</string>
+    <string name="preference_show_touch_key" translatable="false">touch_pointer</string>
+
+    <string name="alert_permission_denied_title">Storage Permission Denied</string>
+    <string name="alert_permission_denied_message">The app requires storage permission to save the recorded video and change default save directory.The app is rendered useless without the permission\n\nDo you want to grant it now?</string>
+    <string name="edit_intent_notification_action_text">Edit</string>
+
+    <string name="preference_floating_control_size_title">Floating controls icon size</string>
+
+    <!--Floating controls-->
+    <string name="preference_floating_control_size_summary">Set the icon size of on-screen floating control</string>
+    <string name="preference_floating_control_size_key" translatable="false">floatingControlSize</string>
+
+
+</resources>
