@@ -1,21 +1,21 @@
 package com.example.recordingservice;
 
 import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.IBinder;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -26,6 +26,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
+import java.lang.reflect.Field;
 
 public class SecondActivity extends AppCompatActivity implements GlobalReceiverCallBack, RecordingRestartNewFileCallBack {
     Button btnStart, btnPause, btnResume, btnStop;
@@ -34,6 +35,7 @@ public class SecondActivity extends AppCompatActivity implements GlobalReceiverC
     RecorderService mService;
     boolean mBound = false;
     Recorder recorder;
+    Intent data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -239,6 +241,7 @@ public class SecondActivity extends AppCompatActivity implements GlobalReceiverC
         }
         /*If code reaches this point, congratulations! The user has granted screen mirroring permission
          * Let us set the recorderservice intent with relevant data and start service*/
+        this.data = data;
         Intent recorderService = new Intent(this, RecorderService.class);
         recorderService.setAction(Const.SCREEN_RECORDING_START);
         recorderService.putExtra(Const.RECORDER_INTENT_DATA, data);
@@ -258,16 +261,60 @@ public class SecondActivity extends AppCompatActivity implements GlobalReceiverC
     @Override
     public void onCallRecordingRestart() {
         Log.d(Const.TAG, "aayasaaaaaaaaaaaa");
+
         stopScreenSharing();
+
+//        Activity activity=getRunningActivity();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+//                startActivityForResult(mProjectionManager.createScreenCaptureIntent(), Const.SCREEN_RECORD_REQUEST_CODE);
+//                start();
+                Intent recorderService = new Intent(SecondActivity.this, RecorderService.class);
+                recorderService.setAction(Const.SCREEN_RECORDING_START);
+                recorderService.putExtra(Const.RECORDER_INTENT_DATA, data);
+                recorderService.putExtra(Const.RECORDER_INTENT_RESULT, -1);
+                startService(recorderService);
+
+
+            }
+        }, 1000);
+
+/*
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 start();
             }
         }, 1000);
+*/
 
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public static Activity getRunningActivity() {
+        try {
+            Class activityThreadClass = Class.forName("android.app.ActivityThread");
+            Object activityThread = activityThreadClass.getMethod("currentActivityThread")
+                    .invoke(null);
+            Field activitiesField = activityThreadClass.getDeclaredField("mActivities");
+            activitiesField.setAccessible(true);
+            ArrayMap activities = (ArrayMap) activitiesField.get(activityThread);
+            for (Object activityRecord : activities.values()) {
+                Class activityRecordClass = activityRecord.getClass();
+                Field pausedField = activityRecordClass.getDeclaredField("paused");
+                pausedField.setAccessible(true);
+                if (!pausedField.getBoolean(activityRecord)) {
+                    Field activityField = activityRecordClass.getDeclaredField("activity");
+                    activityField.setAccessible(true);
+                    return (Activity) activityField.get(activityRecord);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        throw new RuntimeException("Didn't find the running activity");
+    }
 
     /*If code reaches this point, congratulations! The user has granted screen mirroring permission
      * Let us set the recorderservice intent with relevant data and start service*//*

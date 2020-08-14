@@ -4,16 +4,16 @@ package com.example.recordingservice;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaRecorder;
@@ -36,6 +36,9 @@ import android.view.Surface;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -51,6 +54,7 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
     private static int BITRATE;
     private static boolean mustRecAudio;
     private static String SAVEPATH;
+
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -119,6 +123,7 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //return super.onStartCommand(intent, flags, startId);
@@ -186,7 +191,7 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
                     /* Add Pause action to Notification to pause screen recording if the user's android version
                      * is >= Nougat(API 24) since pause() isnt available previous to API24 else build
                      * Notification with only default stop() action */
-                 /*   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         //startTime is to calculate elapsed recording time to update notification during pause/resume
                         startTime = System.currentTimeMillis();
                         Intent recordPauseIntent = new Intent(this, RecorderService.class);
@@ -196,9 +201,24 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
                                 getString(R.string.screen_recording_notification_action_pause), precordPauseIntent);
 
                         //Start Notification as foreground
-                        startNotificationForeGround(createNotification(action).build(), Const.SCREEN_RECORDER_NOTIFICATION_ID);
-                    } else
-                        startNotificationForeGround(createNotification(null).build(), Const.SCREEN_RECORDER_NOTIFICATION_ID);*/
+//                        startNotificationForeGround(createNotification(action).build(), Const.SCREEN_RECORDER_NOTIFICATION_ID);
+                        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                        String channelId = getString(R.string.app_name);
+                        NotificationChannel notificationChannel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_DEFAULT);
+                        notificationChannel.setDescription(channelId);
+                        notificationChannel.setSound(null, null);
+
+                        notificationManager.createNotificationChannel(notificationChannel);
+                        Notification notification = new Notification.Builder(this, channelId)
+                                .setContentTitle(getString(R.string.app_name))
+                                .setContentText("Connected through SDL")
+                                .setSmallIcon(R.drawable.ic_launcher_background)
+                                .setPriority(Notification.PRIORITY_DEFAULT)
+                                .build();
+                        startForeground(1, notification);
+                    } else {
+                        startNotificationForeGround(createNotification(null).build(), Const.SCREEN_RECORDER_NOTIFICATION_ID);
+                    }
                 } else {
                     Toast.makeText(this, "already act", Toast.LENGTH_SHORT).show();
                 }
@@ -226,10 +246,30 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
                 }
 */
                 //The service is started as foreground service and hence has to be stopped
-//                stopForeground(true);
+                stopForeground(true);
                 break;
         }
         return START_STICKY;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void startMyOwnForeground() {
+        String NOTIFICATION_CHANNEL_ID = "com.example.simpleapp";
+        String channelName = "My Background Service";
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
+        startForeground(2, notification);
     }
 
     @TargetApi(24)
@@ -332,35 +372,29 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
 
     /* Create Notification.Builder with action passed in case user's android version is greater than
      * API24 */
-/*
     private NotificationCompat.Builder createNotification(NotificationCompat.Action action) {
         Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                R.mipmap.logo);
+                R.mipmap.ic_launcher);
 
         Intent recordStopIntent = new Intent(this, RecorderService.class);
         recordStopIntent.setAction(Const.SCREEN_RECORDING_STOP);
         PendingIntent precordStopIntent = PendingIntent.getService(this, 0, recordStopIntent, 0);
-
         Intent UIIntent = new Intent(this, MainActivity.class);
         PendingIntent notificationContentIntent = PendingIntent.getActivity(this, 0, UIIntent, 0);
 
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this)
                 .setContentTitle(getResources().getString(R.string.screen_recording_notification_title))
                 .setTicker(getResources().getString(R.string.screen_recording_notification_title))
-                .setSmallIcon(R.drawable.logo1)
-                .setLargeIcon(
-                        Bitmap.createScaledBitmap(icon, 128, 128, false))
+                .setSmallIcon(R.drawable.ic_launcher_background)
                 .setUsesChronometer(true)
                 .setOngoing(true)
-                .setContentIntent(notificationContentIntent)
                 .setPriority(Notification.PRIORITY_MAX)
-                .addAction(R.drawable.ic_notification_stop, getResources().getString(R.string.screen_recording_notification_action_stop),
+                .addAction(R.drawable.ic_launcher_background, getResources().getString(R.string.screen_recording_notification_action_stop),
                         precordStopIntent);
         if (action != null)
             notification.addAction(action);
         return notification;
     }
-*/
 
 /*
     private void showShareNotification() {
@@ -523,14 +557,6 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
         destroyMediaProjection();
     }
 
-    private void start() {
-        Intent recorderService = new Intent(this, RecorderService.class);
-        recorderService.setAction(Const.SCREEN_RECORDING_START);
-        recorderService.putExtra(Const.RECORDER_INTENT_DATA, new Intent());
-        recorderService.putExtra(Const.RECORDER_INTENT_RESULT, -1);
-        startService(recorderService);
-
-    }
 
     private class MediaProjectionCallback extends MediaProjection.Callback {
         @Override

@@ -3,9 +3,6 @@ package com.example.recordingservice;
 import android.content.Context;
 import android.content.Intent;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Session {
     public static GlobalReceiverCallBack mGlobalReceiverCallback;
     public static RecordingRestartNewFileCallBack mRecordingRestartNewFileCallBack;
