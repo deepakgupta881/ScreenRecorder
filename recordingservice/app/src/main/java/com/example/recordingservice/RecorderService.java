@@ -17,10 +17,8 @@ import android.graphics.Color;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaRecorder;
-import android.media.MediaScannerConnection;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
@@ -42,19 +40,16 @@ import androidx.core.app.NotificationCompat;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
 
-//TODO: Update icons for notifcation
 public class RecorderService extends Service implements MediaRecorder.OnInfoListener {
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static int WIDTH, HEIGHT, FPS, DENSITY_DPI;
     private static int BITRATE;
     private static boolean mustRecAudio;
     private static String SAVEPATH;
-
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -67,7 +62,6 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
         @Override
         public void handleMessage(Message message) {
             Toast.makeText(RecorderService.this, "stped", Toast.LENGTH_SHORT).show();
-//            showShareNotification();
         }
     };
     private boolean isRecording;
@@ -76,23 +70,6 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
 //    private FloatingControlService floatingControlService;
 //    private boolean isBound = false;
 
-   /* //Service connection to manage the connection state between this service and the bounded service
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            //Get the service instance
-            FloatingControlService.ServiceBinder binder = (FloatingControlService.ServiceBinder) service;
-            floatingControlService = binder.getService();
-            isBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            floatingControlService = null;
-            isBound = false;
-        }
-    };
-*/
 
     private long startTime, elapsedTime = 0;
     private SharedPreferences prefs;
@@ -159,16 +136,6 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
                         mMediaRecorder.start();
 
                         //If floating controls is enabled, start the floating control service and bind it here
-                     /*   if (useFloatingControls) {
-                            Intent floatinControlsIntent = new Intent(this, FloatingControlService.class);
-                            startService(floatinControlsIntent);
-                            bindService(floatinControlsIntent,
-                                    serviceConnection, BIND_AUTO_CREATE);
-                        }
-
-                        //Set the state of the recording
-                        if (isBound)
-                            floatingControlService.setRecordingState(Const.RecordingState.RECORDING);*/
 
 
                         isRecording = true;
@@ -238,15 +205,10 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
                 stopScreenSharing();
 
                 //Send a broadcast receiver to the plugin app to disable show touches since the recording is stopped
-              /*  if (showTouches) {
-                    Intent TouchIntent = new Intent();
-                    TouchIntent.setAction("com.orpheusdroid.screenrecorder.DISABLETOUCH");
-                    TouchIntent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-                    sendBroadcast(TouchIntent);
-                }
-*/
                 //The service is started as foreground service and hence has to be stopped
-                stopForeground(true);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    stopForeground(true);
+                }
                 break;
         }
         return START_STICKY;
@@ -277,28 +239,9 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
         mMediaRecorder.pause();
         //calculate total elapsed time until pause
         elapsedTime += (System.currentTimeMillis() - startTime);
-//        Log.d(RecorderService.class.getName(), "pause");
         Log.d(Const.TAG, "pause");
-
         //Set Resume action to Notification and update the current notification
-      /*  Intent recordResumeIntent = new Intent(this, RecorderService.class);
-        recordResumeIntent.setAction(Const.SCREEN_RECORDING_RESUME);
-        PendingIntent precordResumeIntent = PendingIntent.getService(this, 0, recordResumeIntent, 0);
-        NotificationCompat.Action action = new NotificationCompat.Action(android.R.drawable.ic_media_play,
-                getString(R.string.screen_recording_notification_action_resume), precordResumeIntent);
-        updateNotification(createNotification(action).setUsesChronometer(false).build(), Const.SCREEN_RECORDER_NOTIFICATION_ID);*/
         Toast.makeText(this, "pause", Toast.LENGTH_SHORT).show();
-
-        /*if (isBound)
-            floatingControlService.setRecordingState(Const.RecordingState.PAUSED);
-
-        //Send a broadcast receiver to the plugin app to disable show touches since the recording is paused
-        if (showTouches) {
-            Intent TouchIntent = new Intent();
-            TouchIntent.setAction("com.orpheusdroid.screenrecorder.DISABLETOUCH");
-            TouchIntent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-            sendBroadcast(TouchIntent);
-        }*/
     }
 
     @TargetApi(24)
@@ -308,30 +251,6 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
         Log.d(Const.TAG, "resume");
         //Reset startTime to current time again
         startTime = System.currentTimeMillis();
-
-       /* //set Pause action to Notification and update current Notification
-        Intent recordPauseIntent = new Intent(this, RecorderService.class);
-        recordPauseIntent.setAction(Const.SCREEN_RECORDING_PAUSE);
-        PendingIntent precordPauseIntent = PendingIntent.getService(this, 0, recordPauseIntent, 0);
-        NotificationCompat.Action action = new NotificationCompat.Action(android.R.drawable.ic_media_pause,
-                getString(R.string.screen_recording_notification_action_pause), precordPauseIntent);
-        updateNotification(createNotification(action).setUsesChronometer(true)
-                .setWhen((System.currentTimeMillis() - elapsedTime)).build(), Const.SCREEN_RECORDER_NOTIFICATION_ID);
-        Toast.makeText(this, R.string.screen_recording_resumed_toast, Toast.LENGTH_SHORT).show();
-
-        if (isBound)
-            floatingControlService.setRecordingState(Const.RecordingState.RECORDING);
-
-
-        //Send a broadcast receiver to the plugin app to enable show touches since the recording is resumed
-        if (showTouches) {
-            if (showTouches) {
-                Intent TouchIntent = new Intent();
-                TouchIntent.setAction("com.orpheusdroid.screenrecorder.SHOWTOUCH");
-                TouchIntent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-                sendBroadcast(TouchIntent);
-            }
-        }*/
     }
 
     //Virtual display created by mirroring the actual physical display
@@ -357,7 +276,7 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
             if (mustRecAudio)
                 mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             mMediaRecorder.setVideoEncodingBitRate(BITRATE);
-            mMediaRecorder.setMaxFileSize(5000000);
+            mMediaRecorder.setMaxFileSize(20000000);
             mMediaRecorder.setVideoFrameRate(FPS);
 
             int rotation = window.getDefaultDisplay().getRotation();
@@ -396,36 +315,6 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
         return notification;
     }
 
-/*
-    private void showShareNotification() {
-        Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                R.mipmap.logo);
-        */
-/*Intent Shareintent = new Intent()
-                .setAction(Intent.ACTION_SEND)
-                .putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(SAVEPATH)))
-                .setType("video/mp4");*//*
-
-        Intent videoListIntent = new Intent();
-        Intent editIntent = new Intent(this, EditVideoActivity.class);
-        editIntent.putExtra(Const.VIDEO_EDIT_URI_KEY, SAVEPATH);
-        PendingIntent editPendingIntent = PendingIntent.getActivity(this, 0, editIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        PendingIntent sharePendingIntent = PendingIntent.getActivity(this, 0, Intent.createChooser(
-                videoListIntent, getString(R.string.share_intent_title)), PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Builder shareNotification = new NotificationCompat.Builder(this)
-                .setContentTitle(getString(R.string.share_intent_notification_title))
-                .setContentText(getString(R.string.share_intent_notification_content))
-                .setSmallIcon(R.drawable.ic_notification)
-                .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                .setAutoCancel(true)
-                .setContentIntent(sharePendingIntent)
-                .addAction(android.R.drawable.ic_menu_share, getString(R.string.share_intent_notification_action_text)
-                        , sharePendingIntent)
-                .addAction(android.R.drawable.ic_menu_edit, getString(R.string.edit_intent_notification_action_text)
-                        , editPendingIntent);
-        updateNotification(shareNotification.build(), Const.SCREEN_RECORDER_SHARE_NOTIFICATION_ID);
-    }
-*/
 
     //Start service as a foreground service. We dont want the service to be killed in case of low memory
     private void startNotificationForeGround(Notification notification, int ID) {
@@ -491,8 +380,6 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
         Date today = Calendar.getInstance().getTime();
         SimpleDateFormat formatter = new SimpleDateFormat(filename);
         return prefix + "_" + formatter.format(today);
-
-
     }
 
     //Stop and destroy all the objects used for screen recording
@@ -524,23 +411,20 @@ public class RecorderService extends Service implements MediaRecorder.OnInfoList
      * to android and index it */
     private void indexFile() {
         //Create a new ArrayList and add the newly created video file path to it
-        ArrayList<String> toBeScanned = new ArrayList<>();
-        toBeScanned.add(SAVEPATH);
-        String[] toBeScannedStr = new String[toBeScanned.size()];
-        toBeScannedStr = toBeScanned.toArray(toBeScannedStr);
+//        useFloatingControls = prefs.getBoolean(getString(R.string.preference_floating_control_key), false);
+//      showTouches = prefs.getBoolean(getString(R.string.preference_show_touch_key), false);
 
-        //Request MediaScannerConnection to scan the new file and index it
-        MediaScannerConnection.scanFile(this, toBeScannedStr, null, new MediaScannerConnection.OnScanCompletedListener() {
 
-            @Override
-            public void onScanCompleted(String path, Uri uri) {
-                Log.i(Const.TAG, "SCAN COMPLETED: " + path);
-                //Show toast on main thread
-                Message message = mHandler.obtainMessage();
-                message.sendToTarget();
-                stopSelf();
-            }
-        });
+        Intent mIntent = new Intent(this, DeleteRecordingService.class);
+        mIntent.putExtra("savepath", SAVEPATH);
+        DeleteRecordingService.enqueueWork(this, mIntent);
+
+
+        Message message = mHandler.obtainMessage();
+        message.sendToTarget();
+        stopSelf();
+
+
     }
 
     @Override
